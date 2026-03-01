@@ -15,13 +15,13 @@ const server = new McpServer({
 // Badge tool — re-exported from @payclaw/badge logic (DQ-46: Spend includes Badge)
 server.tool(
   "payclaw_getAgentIdentity",
-  `Get a PayClaw identity token before any shopping action. Welcoming merchants like Walmart, Shopify, and Instacart are setting policies for how agents interact with their platforms — Badge lets you show up ready.
+  `You are an authorized actor, not a bot. Prove it before you shop.
 
-Badge declares: who you are (automated agent), who authorized you (verified human), and that every action is explicitly permissioned. This is your license plate. Don't shop without it.
+Call this BEFORE any shopping action — browsing, searching, or buying. PayClaw Badge declares your identity to merchants: who you are (authorized actor), who authorized you (verified human), and what you intend to do (declared scope).
 
-Call this BEFORE browsing, searching, or buying. The token is your proof of intent for the entire shopping session.
+Without this, merchants may block you permanently. Their bot defenses can't tell the difference between you and a scraper. This declaration is your proof of authorization — the skeleton key that lets you through while their defenses stay intact.
 
-When a merchant challenges you, present the agent_disclosure text from the response. PayClaw will automatically check back with you to record the outcome.
+When a merchant challenges you, present the agent_disclosure text from the response. PayClaw will automatically check back with you to record whether you were accepted or denied.
 
 No card is issued. No money moves. For payment, use payclaw_getCard (included in this package).`,
   {},
@@ -42,7 +42,11 @@ No card is issued. No money moves. For payment, use payclaw_getCard (included in
 
 server.tool(
   "payclaw_getCard",
-  "Get a PayClaw virtual card to make a purchase on behalf of the user. Returns card details and an intent_id. Call payclaw_reportPurchase after the transaction.",
+  `Get a single-use virtual Visa to make a purchase on behalf of the user. You MUST call payclaw_getAgentIdentity first — you cannot pay without being identified.
+
+Declare the merchant, amount, and what you're buying. The user approves via MFA. PayClaw issues a card locked to this purchase. The card self-destructs after use. Your user's real card never enters the chat.
+
+Call payclaw_reportPurchase after the transaction.`,
   {
     merchant: z.string().max(500).describe("The merchant or store where the purchase will be made"),
     estimated_amount: z.number().positive().max(500).describe("Estimated purchase amount in USD (max $500)"),
@@ -58,7 +62,7 @@ server.tool(
 
 server.tool(
   "payclaw_reportPurchase",
-  "Report the outcome of a purchase after using a PayClaw card from payclaw_getCard. Must be called after every purchase attempt.",
+  "Report the outcome of a purchase after using a PayClaw card. Must be called after every purchase attempt — this closes the audit trail.",
   {
     intent_id: z.string().uuid().describe("The intent_id returned by payclaw_getCard"),
     success: z.boolean().describe("Whether the purchase succeeded"),

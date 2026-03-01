@@ -2,7 +2,7 @@
   "name": "@payclaw/mcp-server",
   "mcpName": "io.github.payclaw/payclaw",
   "version": "0.1.4",
-  "description": "MCP server for PayClaw — virtual Visa cards for AI agents. Sandbox open now.",
+  "description": "Badge identity + virtual Visa cards for AI agents. Declare, pay, audit — on existing Visa rails. MCP-native.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
