@@ -3,7 +3,7 @@ import * as api from "../api/client.js";
 const MOCK_TOKEN_PREFIX = "pc_v1_sand";
 
 function getMockDisclosure(scope = "BROWSE"): string {
-  return `This agent is using PayClaw Badge: Agent Intent for Ecommerce. The principal user token is a SHA-256 starting ${MOCK_TOKEN_PREFIX}***. Intent has been expressly user-authorized for this session for [${scope}]. For inquiries, please message security@payclaw.io`;
+  return `This agent is using PayClaw Badge: Agent Intent for Ecommerce. The principal user token is a SHA-256 starting ${MOCK_TOKEN_PREFIX}***. Intent has been expressly user-authorized for this session for [${scope}]. For inquiries, please message agent_identity@payclaw.io`;
 }
 
 /**
