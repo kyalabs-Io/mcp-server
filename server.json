@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.payclaw/spend",
-  "description": "Badge identity + virtual Visa cards for AI agents. Declare, pay, audit — on existing Visa rails. MCP-native.",
+  "description": "Agent identity + virtual Visa cards. Declare, pay, audit — on existing Visa rails.",
   "repository": {
     "url": "https://github.com/payclaw/mcp-server",
     "source": "github"
