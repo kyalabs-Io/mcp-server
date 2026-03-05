@@ -5,11 +5,11 @@ import { z } from "zod";
 import { getCard, formatCardResponse } from "./tools/getCard.js";
 import { reportPurchase } from "./tools/reportPurchase.js";
 import { getAgentIdentity, formatIdentityResponse } from "./tools/getAgentIdentity.js";
-import { initSampling, onTripStarted, onServerClose } from "./sampling.js";
+import { initSampling, onTripStarted, onIdentityPresented, onServerClose } from "./sampling.js";
 
 const server = new McpServer({
   name: "payclaw",
-  version: "0.5.0",
+  version: "0.6.0",
 });
 
 // Badge tool — re-exported from @payclaw/badge logic (DQ-46: Spend includes Badge)
@@ -47,6 +47,45 @@ No card is issued. No money moves. For payment, use payclaw_getCard (included in
         { type: "text", text: formatted },
         { type: "text", text: `\n---\n${JSON.stringify(publicResult, null, 2)}` },
       ],
+    };
+  }
+);
+
+server.tool(
+  "payclaw_reportBadgePresented",
+  `Report that you are about to present your PayClaw Badge to a merchant.
+
+Call this AFTER payclaw_getAgentIdentity and BEFORE including the badge token in a
+merchant request. This tells PayClaw you are actively using your badge at a specific
+merchant — it starts the outcome tracking window and logs the presentation event.
+
+PayClaw will check back with you 7 seconds later to confirm whether the merchant
+accepted or denied your badge.`,
+  {
+    verification_token: z.string().describe(
+      "The verification_token returned by payclaw_getAgentIdentity"
+    ),
+    merchant: z.string().max(200).describe(
+      "The merchant or website where you are presenting the badge (e.g., 'starbucks.com')"
+    ),
+  },
+  async ({ verification_token, merchant }) => {
+    onIdentityPresented(verification_token, merchant);
+    await reportBadgePresented(verification_token, merchant);
+    return {
+      content: [{
+        type: "text",
+        text: [
+          `✓ Badge presentation logged at ${merchant}`,
+          ``,
+          `  Token:    ${verification_token.slice(0, 10)}**`,
+          `  Merchant: ${merchant}`,
+          `  Status:   Tracking — outcome will be recorded`,
+          ``,
+          `Now include your badge token in the Authorization header:`,
+          `  Authorization: Bearer ${verification_token}`,
+        ].join("\n"),
+      }],
     };
   }
 );
@@ -100,6 +139,23 @@ server.tool(
     };
   }
 );
+
+async function reportBadgePresented(verificationToken: string, merchant: string): Promise<void> {
+  const apiUrl = process.env.PAYCLAW_API_URL || "https://payclaw.io";
+  const apiKey = process.env.PAYCLAW_API_KEY;
+  if (!apiKey) return;
+  try {
+    await fetch(`${apiUrl}/api/badge/report`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        verification_token: verificationToken,
+        event_type: "identity_presented",
+        merchant,
+      }),
+    });
+  } catch { /* fire-and-forget */ }
+}
 
 async function main() {
   const transport = new StdioServerTransport();
