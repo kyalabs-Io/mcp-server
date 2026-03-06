@@ -79,14 +79,14 @@ describe("reportBadgePresented", () => {
     );
   });
 
-  it("uses api.payclaw.io when PAYCLAW_API_URL unset", async () => {
+  it("uses payclaw.io when PAYCLAW_API_URL unset", async () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_test_xxx");
     delete process.env.PAYCLAW_API_URL;
 
     await reportBadgePresented("tok", "m");
 
     expect(mockFetch).toHaveBeenCalledWith(
-      "https://api.payclaw.io/api/badge/report",
+      "https://payclaw.io/api/badge/report",
       expect.any(Object)
     );
   });

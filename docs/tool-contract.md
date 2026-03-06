@@ -1,0 +1,84 @@
+# PayClaw MCP Tool Contract
+
+Formal input/output contract for MCP tools in `@payclaw/mcp-server` and `@payclaw/badge`. Update this doc when tool inputs, outputs, or auth requirements change.
+
+---
+
+## Auth
+
+- **OAuth path (default):** No API key. Device flow via `POST /api/oauth/device/authorize` and `POST /api/oauth/token`. Consent key stored after user approves at `/activate`.
+- **Legacy API key:** Set `PAYCLAW_API_KEY` (pk_test_ or pk_live_). MCP calls `POST /api/agent-identity` with `Authorization: Bearer pk_...`.
+- **Extended Auth:** Set `PAYCLAW_EXTENDED_AUTH=true` to ask your agent to confirm how merchants responded when they requested your token. Default: agent reports via payclaw_reportBadgeOutcome.
+
+---
+
+## @payclaw/mcp-server (Badge + Spend)
+
+### payclaw_getAgentIdentity
+
+**Input:** `{ merchant?: string }` — Optional merchant/website the agent intends to visit.
+
+**Output:** Text + JSON. Keys include `verification_token`, `agent_disclosure`, `assurance_level`. If `activation_required`, user must complete device flow at `/activate`.
+
+**App route:** `POST /api/agent-identity` (with Bearer token after auth).
+
+---
+
+### payclaw_reportBadgePresented
+
+**Input:** `{ verification_token: string, merchant: string }` — Token from getAgentIdentity; merchant where badge is being presented.
+
+**Output:** Text confirmation. Starts outcome tracking. When Extended Auth (`PAYCLAW_EXTENDED_AUTH=true`) is enabled, PayClaw checks back ~7s later. Otherwise, agent reports via payclaw_reportBadgeOutcome.
+
+**App route:** `POST /api/badge/report`.
+
+---
+
+### payclaw_reportBadgeOutcome
+
+**Input:** `{ verification_token: string, merchant: string, outcome: "accepted" | "denied" | "inconclusive" }` — How the merchant responded when the agent presented the badge.
+
+**Output:** Text confirmation. Agent-only path — no sampling prompt. Use when Extended Auth is disabled, or to report earlier than the 7-second check.
+
+**App route:** `POST /api/badge/report` (event_type: trip_success or trip_failure).
+
+---
+
+### payclaw_getCard
+
+**Input:** `{ merchant: string, estimated_amount: number, description: string }` — Merchant, USD amount (max 500), purchase description.
+
+**Output:** Text + JSON. Keys include `intent_id`, card details (number, expiry, cvv) when approved.
+
+**App routes:** `POST /api/intents` → user approves → `GET /api/cards?intent_id=...`.
+
+---
+
+### payclaw_reportPurchase
+
+**Input:** `{ intent_id: string, success: boolean, actual_amount?: number, merchant_name?: string, items?: string, order_confirmation?: string }`.
+
+**Output:** JSON result. Closes audit trail.
+
+**App route:** Internal (reconciliation).
+
+---
+
+## @payclaw/badge (Badge only)
+
+### payclaw_getAgentIdentity
+
+Same as mcp-server. Optional `merchant` input.
+
+### payclaw_reportBadgePresented
+
+**Input:** `{}` (no params in badge package — lightweight). Requires `PAYCLAW_API_KEY` to call API.
+
+**Note:** mcp-server version takes `verification_token` and `merchant`; badge-server version is simpler (no token/merchant params). Badge-server does not call `/api/badge/report` with token/merchant; mcp-server does.
+
+---
+
+## References
+
+- [app/docs/internal/api-overview.md](../../app/docs/internal/api-overview.md) — API routes
+- [app/docs/1.0-state/04-mcp-servers.md](../../app/docs/1.0-state/04-mcp-servers.md) — Flows

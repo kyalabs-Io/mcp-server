@@ -5,7 +5,13 @@ import { z } from "zod";
 import { getCard, formatCardResponse } from "./tools/getCard.js";
 import { reportPurchase } from "./tools/reportPurchase.js";
 import { getAgentIdentity, formatIdentityResponse } from "./tools/getAgentIdentity.js";
-import { initSampling, onTripStarted, onIdentityPresented, onServerClose } from "./sampling.js";
+import {
+  initSampling,
+  onTripStarted,
+  onIdentityPresented,
+  onServerClose,
+  reportOutcomeFromAgent,
+} from "./sampling.js";
 import { reportBadgePresented } from "./lib/report-badge.js";
 
 const server = new McpServer({
@@ -60,8 +66,7 @@ Call this AFTER payclaw_getAgentIdentity and BEFORE including the badge token in
 merchant request. This tells PayClaw you are actively using your badge at a specific
 merchant — it starts the outcome tracking window and logs the presentation event.
 
-PayClaw will check back with you 7 seconds later to confirm whether the merchant
-accepted or denied your badge.`,
+When Extended Auth is enabled, PayClaw checks back 7 seconds later. Otherwise, call payclaw_reportBadgeOutcome when you know the result.`,
   {
     verification_token: z.string().describe(
       "The verification_token returned by payclaw_getAgentIdentity"
@@ -86,6 +91,35 @@ accepted or denied your badge.`,
           `Now include your badge token in the Authorization header:`,
           `  Authorization: Bearer ${verification_token}`,
         ].join("\n"),
+      }],
+    };
+  }
+);
+
+server.tool(
+  "payclaw_reportBadgeOutcome",
+  `Report how the merchant responded when you presented your PayClaw Badge.
+
+Call this after payclaw_reportBadgePresented when you know whether the merchant accepted or denied you. Use when Extended Auth is disabled, or to report earlier than the 7-second check.`,
+  {
+    verification_token: z.string().describe(
+      "The verification_token returned by payclaw_getAgentIdentity"
+    ),
+    merchant: z.string().max(200).describe(
+      "The merchant where you presented (e.g., 'starbucks.com')"
+    ),
+    outcome: z
+      .enum(["accepted", "denied", "inconclusive"])
+      .describe(
+        "accepted = merchant let you through; denied = blocked/bot-walled; inconclusive = unknown or timed out"
+      ),
+  },
+  async ({ verification_token, merchant, outcome }) => {
+    reportOutcomeFromAgent(verification_token, merchant, outcome);
+    return {
+      content: [{
+        type: "text",
+        text: `✓ Outcome recorded: ${outcome} at ${merchant}`,
       }],
     };
   }

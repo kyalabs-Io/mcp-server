@@ -30,7 +30,7 @@ Add to your MCP client config (Claude Desktop, Cursor, or any MCP client):
       "command": "npx",
       "args": ["-y", "@payclaw/mcp-server"],
       "env": {
-        "PAYCLAW_API_URL": "https://api.payclaw.io"
+        "PAYCLAW_API_URL": "https://payclaw.io"
       }
     }
   }
@@ -38,6 +38,19 @@ Add to your MCP client config (Claude Desktop, Cursor, or any MCP client):
 ```
 
 No API key required. On first use, your agent will show a code and URL — approve on your phone, and your Consent Key is stored. Optional: set `PAYCLAW_API_KEY` for existing accounts (backward compatible).
+
+### Extended Auth (optional)
+
+When merchants request your token, PayClaw can ask your agent to confirm how they responded — accepted or denied. This helps improve merchant outreach and trust signals. Enable with `PAYCLAW_EXTENDED_AUTH=true`:
+
+```json
+"env": {
+  "PAYCLAW_API_URL": "https://payclaw.io",
+  "PAYCLAW_EXTENDED_AUTH": "true"
+}
+```
+
+Without it, your agent reports outcomes via `payclaw_reportBadgeOutcome` when it knows the result. Extended Auth adds an in-flow confirmation prompt for developers who want richer data.
 
 Or install via ClawHub:
 ```bash
@@ -85,6 +98,8 @@ See [docs/tool-contract.md](docs/tool-contract.md) for the formal input/output c
 | Tool | What It Does |
 |------|-------------|
 | `payclaw_getAgentIdentity` | Declare identity → get verification token (Badge) |
+| `payclaw_reportBadgePresented` | Log that you're presenting your badge at a merchant |
+| `payclaw_reportBadgeOutcome` | Report how the merchant responded (accepted, denied, inconclusive) |
 | `payclaw_getCard` | Declare purchase intent → get virtual Visa (Spend) |
 | `payclaw_reportPurchase` | Report transaction outcome → close the audit trail |
 
@@ -93,9 +108,11 @@ See [docs/tool-contract.md](docs/tool-contract.md) for the formal input/output c
 ```
 Agent → payclaw_getAgentIdentity
 PayClaw → verification token + disclosure text
-Agent → presents disclosure to merchant
-PayClaw → checks back: "Were you accepted or denied?"
+Agent → presents disclosure to merchant (payclaw_reportBadgePresented)
+Agent → payclaw_reportBadgeOutcome (accepted | denied | inconclusive)
 ```
+
+When Extended Auth is enabled (`PAYCLAW_EXTENDED_AUTH=true`), PayClaw asks your agent to confirm how merchants responded when they requested your token. Otherwise, your agent reports the outcome directly.
 
 Your agent is now a declared, authorized actor. Not anonymous traffic.
 
@@ -149,7 +166,7 @@ If you only need identity (no payment), use the lighter package:
       "command": "npx",
       "args": ["-y", "@payclaw/badge"],
       "env": {
-        "PAYCLAW_API_URL": "https://api.payclaw.io"
+        "PAYCLAW_API_URL": "https://payclaw.io"
       }
     }
   }

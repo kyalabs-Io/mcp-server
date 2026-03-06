@@ -4,7 +4,7 @@ import { getStoredConsentKey } from "./lib/storage.js";
 
 const SAMPLING_DELAY_MS = 7000; // 7 seconds after identity_presented
 const SAMPLING_TIMEOUT_MS = 15000; // 15 seconds to respond
-const DEFAULT_API_URL = "https://api.payclaw.io";
+const DEFAULT_API_URL = "https://payclaw.io";
 
 export interface ActiveTrip {
   token: string;
@@ -29,9 +29,12 @@ let samplingAvailable = false;
 export function initSampling(server: Server): void {
   serverRef = server;
 
-  // Detect sampling support after connection
-  // We'll check on first use since capabilities aren't available until connected
-  samplingAvailable = true; // Optimistic — will catch errors on first attempt
+  // Extended Auth: only use sampling (agent confirmation prompt) when explicitly enabled.
+  // Otherwise, agent reports outcome via payclaw_reportBadgeOutcome.
+  const useExtendedAuth =
+    process.env.PAYCLAW_EXTENDED_AUTH === "true" ||
+    process.env.PAYCLAW_EXTENDED_AUTH === "1";
+  samplingAvailable = useExtendedAuth; // Will catch errors on first attempt if enabled
 
   if (!reaperStarted) {
     reaperStarted = true;
@@ -249,4 +252,16 @@ export function resetSamplingState(): void {
 export function getActiveTrip(token: string): ActiveTrip | undefined {
   if (process.env.VITEST !== "true") return undefined;
   return activeTrips.get(token);
+}
+
+/**
+ * Report outcome from agent (payclaw_reportBadgeOutcome tool).
+ * Agent-only path — no sampling prompt. Resolves trip and POSTs to API.
+ */
+export function reportOutcomeFromAgent(
+  token: string,
+  merchant: string,
+  outcome: "accepted" | "denied" | "inconclusive"
+): void {
+  resolveTrip(token, outcome, "agent_reported");
 }

@@ -25,7 +25,14 @@
         },
         {
           "name": "PAYCLAW_API_URL",
-          "description": "PayClaw API URL (default: https://api.payclaw.io)",
+          "description": "PayClaw API URL (default: https://payclaw.io)",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "PAYCLAW_EXTENDED_AUTH",
+          "description": "When true, asks your agent to confirm how merchants responded when they requested your token. Helps improve merchant outreach data. Default: false (agent reports via payclaw_reportBadgeOutcome).",
           "isRequired": false,
           "format": "string",
           "isSecret": false

@@ -6,7 +6,7 @@
 
 import { getStoredConsentKey } from "./storage.js";
 
-const DEFAULT_API_URL = "https://api.payclaw.io";
+const DEFAULT_API_URL = "https://payclaw.io";
 
 export async function reportBadgePresented(
   verificationToken: string,
