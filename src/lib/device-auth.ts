@@ -1,17 +1,38 @@
+// Canonical: badge-server | Synced: 0.7.3 | Do not edit in mcp-server
 import { storeConsentKey } from "./storage.js";
 
 const DEFAULT_API_URL = "https://payclaw.io";
+const FETCH_TIMEOUT_MS = 10_000;
 
 function getBaseUrl(): string {
   const url = process.env.PAYCLAW_API_URL;
   if (url && url.trim().length > 0) {
-    return url.trim().replace(/\/+$/, "");
+    const trimmed = url.trim().replace(/\/+$/, "");
+    try {
+      const parsed = new URL(trimmed);
+      const isLoopback = ["localhost", "127.0.0.1", "::1"].includes(parsed.hostname);
+      if (parsed.protocol === "https:" || (parsed.protocol === "http:" && isLoopback)) {
+        return trimmed;
+      }
+    } catch {
+      // fall through to DEFAULT_API_URL
+    }
   }
   return DEFAULT_API_URL;
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export interface DeviceAuthResponse {
@@ -29,7 +50,7 @@ export interface DeviceAuthResponse {
  */
 export async function initiateDeviceAuth(): Promise<DeviceAuthResponse> {
   const baseUrl = getBaseUrl();
-  const res = await fetch(`${baseUrl}/api/oauth/device/authorize`, {
+  const res = await fetchWithTimeout(`${baseUrl}/api/oauth/device/authorize`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ scope: "ucp:scopes:checkout_session" }),
@@ -44,7 +65,9 @@ export async function initiateDeviceAuth(): Promise<DeviceAuthResponse> {
   if (!data.device_code || !data.user_code || !data.verification_uri) {
     throw new Error("Invalid device auth response");
   }
-  return data;
+  const interval = Math.max(1, Number(data.interval) || 5);
+  const expiresIn = Math.max(1, Number(data.expires_in) || 600);
+  return { ...data, interval, expires_in: expiresIn };
 }
 
 export interface TokenSuccessResponse {
@@ -78,7 +101,7 @@ export async function pollForApproval(
   while (Date.now() < deadline) {
     await sleep(currentInterval * 1000);
 
-    const res = await fetch(`${baseUrl}/api/oauth/token`, {
+    const res = await fetchWithTimeout(`${baseUrl}/api/oauth/token`, {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
