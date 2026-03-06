@@ -36,13 +36,13 @@ describe("sampling", () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    resetSamplingState(); // must run while VITEST is still "true"
     vi.unstubAllGlobals();
     if (originalVitest !== undefined) {
       process.env.VITEST = originalVitest;
     } else {
       delete process.env.VITEST;
     }
-    resetSamplingState();
   });
 
   describe("onIdentityPresented", () => {
