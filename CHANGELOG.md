@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.0] - 2026-03-07 — PRD-3: UCP-Aware Identity
+
+### Added
+- `merchantUrl` parameter on `getAgentIdentity` — when provided, fetches merchant's `/.well-known/ucp` manifest and checks for `io.payclaw.common.identity` capability
+- `checkoutPatch` in identity response — agent merges into checkout payload when merchant supports UCP
+- `ucpCapable`, `requiredByMerchant`, `ucpWarning` fields on identity result
+- `merchantUrl` parameter on `reportBadgePresented` (preferred over `merchant`)
+- `checkoutSessionId` parameter on `reportBadgePresented` for UCP checkout session tracking
+- `ucp-manifest.ts` — SSRF-protected manifest fetcher with per-domain caching (5 min TTL), HTTPS enforcement, private IP blocking
+- UCP display in `formatIdentityResponse` — shows capability status, requirement, and action instructions
+
+### Changed
+- `reportBadgePresented` now requires `merchantUrl` or `merchant` (validates at least one provided)
+- `reportBadgePresented` returns `{ recorded: true }` JSON in first content block for machine parsing
+- Trip tracking uses `merchantUrl` when available (falls back to `merchant`)
+- Canonical header updated to `Synced: PRD-3` on `getAgentIdentity.ts`
+
+### Refs
+- PRD-3: UCP-Aware Identity (2026-03-07)
+
 ## [0.7.6] - 2026-03-06 — Tier 6: Stress Test Readiness
 
 ### Added
