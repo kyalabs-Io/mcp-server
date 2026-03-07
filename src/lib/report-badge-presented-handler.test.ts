@@ -60,6 +60,12 @@ describe("handleReportBadgePresented (payclaw_reportBadgePresented tool)", () =>
     expect(reportBadge.reportBadgePresented).toHaveBeenCalledWith("tok", "m", "checkout", undefined);
   });
 
+  it("passes checkoutSessionId to reportBadgePresented when provided", async () => {
+    await handleReportBadgePresented("tok", "m", "checkout", "session-123");
+
+    expect(reportBadge.reportBadgePresented).toHaveBeenCalledWith("tok", "m", "checkout", "session-123");
+  });
+
   it("returns response with empty merchant without throwing", async () => {
     const result = await handleReportBadgePresented("tok_xyz", "");
 
