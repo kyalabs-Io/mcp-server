@@ -36,7 +36,7 @@ describe("getAgentIdentity — 401 handling", () => {
 
   it("surfaces session_expired when OAuth token gets 401", async () => {
     const authError = new api.PayClawApiError(
-      "Your PayClaw session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
+      "PayClaw authentication failed. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.payclaw.io/dashboard/keys\n" +
       "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
       "Permanent keys don't expire. See: https://www.payclaw.io/docs/mcp-setup",
@@ -49,9 +49,10 @@ describe("getAgentIdentity — 401 handling", () => {
 
     expect(result.session_expired).toBe(true);
     expect(result.status).not.toBe("active");
-    expect(result.message).toContain("session has expired");
+    expect(result.message).toContain("PayClaw authentication failed");
     expect(result.message).toContain("payclaw.io/dashboard/keys");
     expect(result.principal_verified).toBe(false);
+    expect(result.merchant).toBe("test-merchant");
   });
 
   it("still falls back to local identity for non-401 errors", async () => {
@@ -72,7 +73,7 @@ describe("getAgentIdentity — 401 handling", () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_live_invalid_key");
 
     const authError = new api.PayClawApiError(
-      "Your PayClaw session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
+      "PayClaw authentication failed. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.payclaw.io/dashboard/keys\n" +
       "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
       "Permanent keys don't expire. See: https://www.payclaw.io/docs/mcp-setup",
@@ -84,8 +85,9 @@ describe("getAgentIdentity — 401 handling", () => {
 
     expect(result.session_expired).toBe(true);
     expect(result.status).toBe("session_expired");
-    expect(result.message).toContain("session has expired");
+    expect(result.message).toContain("PayClaw authentication failed");
     expect(result.principal_verified).toBe(false);
+    expect(result.merchant).toBe("test-merchant");
 
     delete process.env.PAYCLAW_API_KEY;
   });
@@ -101,7 +103,7 @@ describe("getAgentIdentity — 401 handling", () => {
       principal_verified: false,
       spend_available: false,
       session_expired: true,
-      message: "Your PayClaw session has expired. To continue, add a permanent API key.",
+      message: "PayClaw authentication failed. To continue, add a permanent API key.",
     };
 
     const formatted = formatIdentityResponse(result);

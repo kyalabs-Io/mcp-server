@@ -29,7 +29,7 @@ describe("401 error handling", () => {
     expect(caught).toBeInstanceOf(PayClawApiError);
     const err = caught as PayClawApiError;
     expect(err.statusCode).toBe(401);
-    expect(err.message).toMatch(/session has expired/i);
+    expect(err.message).toMatch(/PayClaw authentication failed/i);
     expect(err.message).toMatch(/payclaw\.io\/dashboard\/keys/i);
     expect(err.message).toMatch(/PAYCLAW_API_KEY/i);
   });

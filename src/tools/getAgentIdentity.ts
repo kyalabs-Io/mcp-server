@@ -186,6 +186,7 @@ async function callWithKey(apiKey: string, merchant?: string): Promise<IdentityR
         principal_verified: false,
         spend_available: false,
         session_expired: true,
+        merchant: merchant || undefined,
         message: msg,
       };
     }
@@ -231,6 +232,7 @@ async function callWithOAuthToken(token: string, merchant?: string): Promise<Ide
         principal_verified: false,
         spend_available: false,
         session_expired: true,
+        merchant: merchant || undefined,
         message: msg,
       };
     }
