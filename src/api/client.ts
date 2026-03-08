@@ -8,7 +8,7 @@ import type {
 } from "../types.js";
 import { getStoredConsentKey } from "../lib/storage.js";
 
-class PayClawApiError extends Error {
+export class PayClawApiError extends Error {
   constructor(
     message: string,
     public statusCode?: number,

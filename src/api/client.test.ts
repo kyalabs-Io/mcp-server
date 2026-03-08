@@ -1,8 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-
-// We test the 401 error message by importing the request function indirectly
-// through getAgentIdentity, since request() is not exported directly.
-// The key assertion: 401 → structured, actionable error message.
+import { getAgentIdentity, PayClawApiError } from "./client.js";
 
 describe("401 error handling", () => {
   const mockFetch = vi.fn();
@@ -20,25 +17,17 @@ describe("401 error handling", () => {
     delete process.env.PAYCLAW_API_KEY;
   });
 
-  it("401 response includes directed action with key URL and config instructions", async () => {
+  it("401 response throws PayClawApiError with directed action", async () => {
     mockFetch.mockResolvedValue({
       ok: false,
       status: 401,
       headers: new Headers(),
     });
 
-    // Import dynamically to pick up env vars
-    const { getAgentIdentity } = await import("./client.js");
-
-    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(
-      /session has expired/i
-    );
-    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(
-      /payclaw\.io\/dashboard\/keys/i
-    );
-    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(
-      /PAYCLAW_API_KEY/i
-    );
+    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(PayClawApiError);
+    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(/session has expired/i);
+    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(/payclaw\.io\/dashboard\/keys/i);
+    await expect(getAgentIdentity(undefined, "test-merchant")).rejects.toThrow(/PAYCLAW_API_KEY/i);
   });
 
   it("401 error has statusCode 401", async () => {
@@ -48,13 +37,12 @@ describe("401 error handling", () => {
       headers: new Headers(),
     });
 
-    const { getAgentIdentity } = await import("./client.js");
-
     try {
       await getAgentIdentity(undefined, "test-merchant");
       expect.fail("Should have thrown");
-    } catch (err: unknown) {
-      expect((err as { statusCode?: number }).statusCode).toBe(401);
+    } catch (err) {
+      expect(err).toBeInstanceOf(PayClawApiError);
+      expect((err as PayClawApiError).statusCode).toBe(401);
     }
   });
 });

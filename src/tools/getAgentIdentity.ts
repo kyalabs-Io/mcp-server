@@ -1,5 +1,6 @@
 // Canonical: badge-server | Synced: PRD-3 | mcp-server syncs from here
 import * as api from "../api/client.js";
+import { PayClawApiError } from "../api/client.js";
 import { getStoredConsentKey } from "../lib/storage.js";
 import { initiateDeviceAuth, pollForApproval } from "../lib/device-auth.js";
 import { fetchUCPManifest, findPayClawCapability, isVersionCompatible } from "../lib/ucp-manifest.js";
@@ -202,7 +203,7 @@ async function callWithOAuthToken(token: string, merchant?: string): Promise<Ide
     process.stderr.write(`[PayClaw] OAuth identity API failed: ${msg}\n`);
 
     // Auth failure: surface it — don't hide behind a local fallback
-    if (err instanceof Error && "statusCode" in err && (err as { statusCode: number }).statusCode === 401) {
+    if (err instanceof PayClawApiError && err.statusCode === 401) {
       return {
         product_name: "PayClaw Badge",
         status: "session_expired",

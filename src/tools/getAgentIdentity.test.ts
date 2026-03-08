@@ -1,9 +1,23 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { getAgentIdentity, formatIdentityResponse } from "./getAgentIdentity.js";
 import * as api from "../api/client.js";
+import { PayClawApiError } from "../api/client.js";
 import * as storage from "../lib/storage.js";
 
-vi.mock("../api/client.js");
+vi.mock("../api/client.js", async (importActual) => {
+  const actual = await importActual<typeof import("../api/client.js")>();
+  return {
+    ...actual,
+    getAgentIdentity: vi.fn(),
+    getAgentIdentityWithToken: vi.fn(),
+    isApiMode: vi.fn(),
+    getBaseUrl: vi.fn(),
+    createIntent: vi.fn(),
+    getCard: vi.fn(),
+    reportTransaction: vi.fn(),
+    getBalance: vi.fn(),
+  };
+});
 vi.mock("../lib/storage.js");
 vi.mock("../lib/device-auth.js");
 vi.mock("../lib/ucp-manifest.js");
@@ -22,12 +36,13 @@ describe("getAgentIdentity — 401 handling", () => {
   });
 
   it("surfaces session_expired when OAuth token gets 401", async () => {
-    const authError = Object.assign(new Error(
+    const authError = new PayClawApiError(
       "Your PayClaw session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.payclaw.io/dashboard/keys\n" +
       "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
-      "Permanent keys don't expire. See: https://www.payclaw.io/docs/mcp-setup"
-    ), { name: "PayClawApiError", statusCode: 401 });
+      "Permanent keys don't expire. See: https://www.payclaw.io/docs/mcp-setup",
+      401
+    );
 
     vi.mocked(api.getAgentIdentityWithToken).mockRejectedValue(authError);
 
