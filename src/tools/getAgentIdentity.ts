@@ -74,7 +74,7 @@ function buildSessionExpiredResult(merchant?: string, message?: string): Identit
     status: "session_expired",
     agent_disclosure: "PayClaw session expired",
     verification_token: "",
-    trust_url: "https://www.payclaw.io/trust",
+    trust_url: "https://payclaw.io/trust",
     contact: "agent_identity@payclaw.io",
     principal_verified: false,
     spend_available: false,
@@ -301,8 +301,8 @@ export function formatIdentityResponse(r: IdentityResult): string {
     return r.message;
   }
 
-  if (r.session_expired && r.message) {
-    return `✗ SESSION EXPIRED\n\n  ${r.message}`;
+  if (r.session_expired) {
+    return `✗ SESSION EXPIRED\n\n  ${r.message || "Your session has expired. Please re-authenticate."}`;
   }
 
   if (r.status === "error") {
