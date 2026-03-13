@@ -2,6 +2,7 @@
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { parseResponse } from "./lib/parse-outcome.js";
 import { getStoredConsentKey } from "./lib/storage.js";
+import { getEnvExtendedAuth, getEnvApiUrl } from "./lib/env.js";
 
 const SAMPLING_DELAY_MS = 7000; // 7 seconds after identity_presented
 const SAMPLING_TIMEOUT_MS = 15000; // 15 seconds to respond
@@ -31,10 +32,8 @@ export function initSampling(server: Server): void {
   serverRef = server;
 
   // Extended Auth: only use sampling (agent confirmation prompt) when explicitly enabled.
-  // Otherwise, agent reports outcome via payclaw_reportBadgeOutcome.
-  const useExtendedAuth =
-    process.env.PAYCLAW_EXTENDED_AUTH === "true" ||
-    process.env.PAYCLAW_EXTENDED_AUTH === "1";
+  // Otherwise, agent reports outcome via kya_reportBadgeOutcome.
+  const useExtendedAuth = getEnvExtendedAuth();
   samplingAvailable = useExtendedAuth; // Will catch errors on first attempt if enabled
 
   if (!reaperStarted) {
@@ -184,7 +183,7 @@ async function reportOutcome(
   merchant: string,
   detail: string
 ): Promise<void> {
-  const apiUrl = process.env.PAYCLAW_API_URL || DEFAULT_API_URL;
+  const apiUrl = getEnvApiUrl() || DEFAULT_API_URL;
   const key = getStoredConsentKey();
   if (!key) return;
 
@@ -264,7 +263,7 @@ export function getActiveTrip(token: string): ActiveTrip | undefined {
 }
 
 /**
- * Report outcome from agent (payclaw_reportBadgeOutcome tool).
+ * Report outcome from agent (kya_reportBadgeOutcome tool).
  * Agent-only path — no sampling prompt. Resolves trip and POSTs to API.
  * When token not in activeTrips (e.g. after restart), looks up by merchant or POSTs directly.
  */

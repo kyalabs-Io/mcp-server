@@ -2,10 +2,11 @@
 /**
  * POST identity_presented to /api/badge/report.
  * Extracted for testability (BUG-01.1).
- * Uses getStoredConsentKey for OAuth users; PAYCLAW_API_KEY for legacy.
+ * Uses getStoredConsentKey for OAuth users; KYA_API_KEY for legacy.
  */
 
 import { getStoredConsentKey } from "./storage.js";
+import { getEnvApiUrl } from "./env.js";
 
 const DEFAULT_API_URL = "https://www.kyalabs.io";
 
@@ -15,7 +16,7 @@ export async function reportBadgePresented(
   context?: "arrival" | "addtocart" | "checkout" | "other",
   checkoutSessionId?: string
 ): Promise<void> {
-  const apiUrl = process.env.PAYCLAW_API_URL || DEFAULT_API_URL;
+  const apiUrl = getEnvApiUrl() || DEFAULT_API_URL;
   const key = getStoredConsentKey();
   if (!key) return;
 
@@ -50,7 +51,7 @@ export async function reportBadgeNotPresented(
   merchant: string,
   reason: "abandoned" | "merchant_didnt_ask" | "other"
 ): Promise<void> {
-  const apiUrl = process.env.PAYCLAW_API_URL || DEFAULT_API_URL;
+  const apiUrl = getEnvApiUrl() || DEFAULT_API_URL;
   const key = getStoredConsentKey();
   if (!key) return;
 

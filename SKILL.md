@@ -14,12 +14,12 @@ Add to your MCP client config:
 ```json
 {
   "mcpServers": {
-    "payclaw": {
+    "kyalabs": {
       "command": "npx",
       "args": ["-y", "@kyalabs/mcp-server"],
       "env": {
-        "PAYCLAW_API_KEY": "your_key_here",
-        "PAYCLAW_API_URL": "https://www.kyalabs.io"
+        "KYA_API_KEY": "your_key_here",
+        "KYA_API_URL": "https://www.kyalabs.io"
       }
     }
   }
@@ -32,9 +32,9 @@ Get your API key at [kyalabs.io](https://www.kyalabs.io).
 
 | Tool | Description |
 |------|-------------|
-| `payclaw_getAgentIdentity` | Declare identity → get verification token (Badge) |
-| `payclaw_getCard` | Declare purchase intent → get virtual Visa (Spend) |
-| `payclaw_reportPurchase` | Report outcome → close the audit trail |
+| `kya_getAgentIdentity` | Declare identity → get verification token (Badge) |
+| `kya_getCard` | Declare purchase intent → get virtual Visa (Spend) |
+| `kya_reportPurchase` | Report outcome → close the audit trail |
 
 ## How It Works
 

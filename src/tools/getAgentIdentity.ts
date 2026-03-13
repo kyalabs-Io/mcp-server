@@ -1,6 +1,7 @@
 // Canonical: badge-server | Synced: PRD-3 | mcp-server syncs from here
 import * as api from "../api/client.js";
 import { getStoredConsentKey } from "../lib/storage.js";
+import { getEnvApiKey } from "../lib/env.js";
 import { initiateDeviceAuth, pollForApproval } from "../lib/device-auth.js";
 import { fetchUCPManifest, findBadgeCapability, isVersionCompatible } from "../lib/ucp-manifest.js";
 
@@ -96,8 +97,8 @@ export async function getAgentIdentity(merchant?: string, merchantUrl?: string):
 
   let result: IdentityResult;
 
-  // Backward compat: PAYCLAW_API_KEY set → use it, device flow never triggers
-  if (consentKey && process.env.PAYCLAW_API_KEY) {
+  // Backward compat: KYA_API_KEY set → use it, device flow never triggers
+  if (consentKey && getEnvApiKey()) {
     result = await callWithKey(consentKey, merchant);
   } else if (!consentKey) {
     // No key: initiate device flow (reuse pending to avoid duplicate pollers)
@@ -159,7 +160,7 @@ async function enrichWithUCP(result: IdentityResult, merchantUrl: string): Promi
     ucpCapable: true,
     requiredByMerchant: capability.required,
     checkoutPatch,
-    instructions: "Merge checkoutPatch into your checkout payload, then call payclaw_reportBadgePresented with the merchantUrl and token.",
+    instructions: "Merge checkoutPatch into your checkout payload, then call kya_reportBadgePresented with the merchantUrl and token.",
   };
 }
 
@@ -232,7 +233,7 @@ async function callWithOAuthToken(token: string, merchant?: string): Promise<Ide
     // Other errors (network, 5xx): fallback to local identity
     const fallback = identityFromOAuthToken(token, undefined, merchant, false);
     fallback.spend_available = undefined;
-    fallback.spend_cta = "Could not verify spend status. Try payclaw_getCard directly — it will check your balance.";
+    fallback.spend_cta = "Could not verify spend status. Try kya_getCard directly — it will check your balance.";
     return fallback;
   }
 }
@@ -346,7 +347,7 @@ export function formatIdentityResponse(r: IdentityResult): string {
   }
 
   if (r.spend_available) {
-    lines.push(``, `  💳 Spend is available — call payclaw_getCard when ready to pay.`);
+    lines.push(``, `  💳 Spend is available — call kya_getCard when ready to pay.`);
   } else if (r.spend_cta) {
     lines.push(``, `  ℹ️  ${r.spend_cta}`);
   } else {

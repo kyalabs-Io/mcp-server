@@ -26,12 +26,12 @@ Add to your MCP client config (Claude Desktop, Cursor, or any MCP client):
 ```json
 {
   "mcpServers": {
-    "payclaw": {
+    "kyalabs": {
       "command": "npx",
       "args": ["-y", "@kyalabs/mcp-server"],
       "env": {
-        "PAYCLAW_API_KEY": "pk_live_your_key_here",
-        "PAYCLAW_API_URL": "https://www.kyalabs.io"
+        "KYA_API_KEY": "pk_live_your_key_here",
+        "KYA_API_URL": "https://www.kyalabs.io"
       }
     }
   }
@@ -42,22 +42,22 @@ Get your API key at [kyalabs.io/dashboard/keys](https://www.kyalabs.io/dashboard
 
 ### Try without an account
 
-Want to try kyaLabs before creating an account? Omit `PAYCLAW_API_KEY` — on first use, your agent will show a verification code and URL. Approve on your phone to get a temporary session. When you're ready for a permanent setup, create an account and generate an API key.
+Want to try kyaLabs before creating an account? Omit `KYA_API_KEY` — on first use, your agent will show a verification code and URL. Approve on your phone to get a temporary session. When you're ready for a permanent setup, create an account and generate an API key.
 
 ### Extended Auth (optional)
 
 When and where merchants request your token, your agent confirms whether the merchant accepted or denied. Responses are logged to your dashboard so you can see visibility of your token by merchant.
 
-Enable with `PAYCLAW_EXTENDED_AUTH=true`:
+Enable with `KYA_EXTENDED_AUTH=true`:
 
 ```json
 "env": {
-  "PAYCLAW_API_URL": "https://www.kyalabs.io",
-  "PAYCLAW_EXTENDED_AUTH": "true"
+  "KYA_API_URL": "https://www.kyalabs.io",
+  "KYA_EXTENDED_AUTH": "true"
 }
 ```
 
-Without it, your agent reports outcomes via `payclaw_reportBadgeOutcome` when it knows the result.
+Without it, your agent reports outcomes via `kya_reportBadgeOutcome` when it knows the result.
 
 Or install via ClawHub:
 ```bash
@@ -79,7 +79,7 @@ If you see engine or compatibility errors:
 
 Badge by kyaLabs is a [UCP (Universal Commerce Protocol)](https://ucp.dev) Credential Provider. Merchants who add `io.kyalabs.common.identity` to their `/.well-known/ucp` manifest signal that authorized agents are preferred at their store.
 
-When your agent calls `payclaw_getAgentIdentity` with a `merchantUrl`, kyaLabs fetches the merchant's manifest, checks for the kyaLabs identity extension, and returns a `checkoutPatch` the agent merges into the checkout payload. If the merchant doesn't support UCP, a valid token is still returned — nothing breaks.
+When your agent calls `kya_getAgentIdentity` with a `merchantUrl`, kyaLabs fetches the merchant's manifest, checks for the kyaLabs identity extension, and returns a `checkoutPatch` the agent merges into the checkout payload. If the merchant doesn't support UCP, a valid token is still returned — nothing breaks.
 
 Merchants verify badges locally using JWKS published at `kyalabs.io/.well-known/ucp` — standard ES256 signature verification, no API call to kyaLabs. See the [reference implementation](https://github.com/kyalabs/ucp-agent-badge/tree/main/reference) in the UCP extension spec.
 
@@ -106,38 +106,38 @@ See [docs/tool-contract.md](docs/tool-contract.md) for the formal input/output c
 
 | Tool | What It Does |
 |------|-------------|
-| `payclaw_getAgentIdentity` | Declare identity → get verification token + UCP `checkoutPatch` (Badge) |
-| `payclaw_reportBadgePresented` | Record that you presented your badge at a merchant |
-| `payclaw_reportBadgeOutcome` | Report how the merchant responded (accepted, denied, inconclusive) |
-| `payclaw_reportBadgeNotPresented` | Report that you did not present your badge (abandoned, merchant didn't ask) |
-| `payclaw_getCard` | Declare purchase intent → get virtual Visa (Spend) |
-| `payclaw_reportPurchase` | Report transaction outcome → close the audit trail |
+| `kya_getAgentIdentity` | Declare identity → get verification token + UCP `checkoutPatch` (Badge) |
+| `kya_reportBadgePresented` | Record that you presented your badge at a merchant |
+| `kya_reportBadgeOutcome` | Report how the merchant responded (accepted, denied, inconclusive) |
+| `kya_reportBadgeNotPresented` | Report that you did not present your badge (abandoned, merchant didn't ask) |
+| `kya_getCard` | Declare purchase intent → get virtual Visa (Spend) |
+| `kya_reportPurchase` | Report transaction outcome → close the audit trail |
 
 ### Badge: Declare Identity
 
 ```
-Agent → payclaw_getAgentIdentity({ merchantUrl })
+Agent → kya_getAgentIdentity({ merchantUrl })
 kyaLabs → fetches merchant's /.well-known/ucp manifest
 kyaLabs → verification token + checkoutPatch (if merchant supports UCP)
 Agent → merges checkoutPatch into checkout payload
-Agent → payclaw_reportBadgePresented({ merchantUrl, verification_token })
-Agent → payclaw_reportBadgeOutcome (accepted | denied | inconclusive)
+Agent → kya_reportBadgePresented({ merchantUrl, verification_token })
+Agent → kya_reportBadgeOutcome (accepted | denied | inconclusive)
 ```
 
 When `merchantUrl` is provided, kyaLabs checks if the merchant supports `io.kyalabs.common.identity` via UCP and returns a `checkoutPatch` the agent merges into the checkout payload. If the merchant doesn't support UCP, a valid token is still returned — nothing breaks.
 
-When Extended Auth is enabled, kyaLabs checks back with your agent 7 seconds after presentation. Otherwise, your agent reports the outcome via `payclaw_reportBadgeOutcome`.
+When Extended Auth is enabled, kyaLabs checks back with your agent 7 seconds after presentation. Otherwise, your agent reports the outcome via `kya_reportBadgeOutcome`.
 
 Your agent is now a declared, authorized actor. Not anonymous traffic.
 
 ### Spend: Get a Card
 
 ```
-Agent → payclaw_getCard (merchant, amount, description)
+Agent → kya_getCard (merchant, amount, description)
 User → approves via MFA
 kyaLabs → issues single-use virtual Visa
 Agent → uses card at checkout
-Agent → payclaw_reportPurchase (closes audit trail)
+Agent → kya_reportPurchase (closes audit trail)
 Card → self-destructs
 ```
 
@@ -176,12 +176,12 @@ If you only need identity (no payment), use the lighter package:
 ```json
 {
   "mcpServers": {
-    "payclaw-badge": {
+    "kyalabs-badge": {
       "command": "npx",
       "args": ["-y", "@kyalabs/badge"],
       "env": {
-        "PAYCLAW_API_KEY": "pk_live_your_key_here",
-        "PAYCLAW_API_URL": "https://www.kyalabs.io"
+        "KYA_API_KEY": "pk_live_your_key_here",
+        "KYA_API_URL": "https://www.kyalabs.io"
       }
     }
   }

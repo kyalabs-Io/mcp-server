@@ -13,6 +13,7 @@
 | `src/lib/report-badge.ts` | Badge reporting |
 | `src/lib/parse-outcome.ts` | Outcome parsing |
 | `src/lib/report-badge-presented-handler.ts` | Badge presentation handler |
+| `src/lib/env.ts` | KYA_*/PAYCLAW_* env var resolution with backward compat |
 
 ### mcp-server owns (canonical copy lives here)
 

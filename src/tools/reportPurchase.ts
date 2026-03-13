@@ -105,7 +105,7 @@ export async function reportPurchase(input: ReportPurchaseInput): Promise<object
     return {
       product_name: "kyaLabs",
       status: "error",
-      message: "Not authenticated. Run payclaw_getAgentIdentity first to activate your agent, or set PAYCLAW_API_KEY in your MCP config.",
+      message: "Not authenticated. Run kya_getAgentIdentity first to activate your agent, or set KYA_API_KEY in your MCP config.",
     };
   }
 

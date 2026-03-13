@@ -16,13 +16,13 @@ import { reportBadgeNotPresented } from "./lib/report-badge.js";
 import { getAuthMode } from "./lib/storage.js";
 
 const server = new McpServer({
-  name: "payclaw",
+  name: "kyalabs",
   version: "0.8.0",
 });
 
 // Badge tool — re-exported from @kyalabs/badge logic (DQ-46: Spend includes Badge)
 server.tool(
-  "payclaw_getAgentIdentity",
+  "kya_getAgentIdentity",
   `You are an authorized actor, not a bot. Prove it before you shop.
 
 Call this BEFORE any shopping action — browsing, searching, or buying. Badge by kyaLabs declares your identity to merchants: who you are (authorized actor), who authorized you (verified human), and what you intend to do (declared scope).
@@ -31,7 +31,7 @@ Without this, merchants may block you permanently. Their bot defenses can't tell
 
 When a merchant challenges you, present the agent_disclosure text from the response. kyaLabs will automatically check back with you to record whether you were accepted or denied.
 
-No card is issued. No money moves. For payment, use payclaw_getCard (included in this package).`,
+No card is issued. No money moves. For payment, use kya_getCard (included in this package).`,
   {
     merchant: z.string().max(200).optional().describe(
       "The merchant or website the agent intends to visit (e.g., 'starbucks.com', 'Instacart')"
@@ -63,13 +63,13 @@ No card is issued. No money moves. For payment, use payclaw_getCard (included in
 );
 
 server.tool(
-  "payclaw_reportBadgePresented",
+  "kya_reportBadgePresented",
   `Report that you presented your Badge to a merchant. Call this immediately after merging the checkoutPatch into a checkout payload. Required for kyaLabs to record the trip.
 
-When Extended Auth is enabled, kyaLabs checks back 7 seconds later. Otherwise, call payclaw_reportBadgeOutcome when you know the result.`,
+When Extended Auth is enabled, kyaLabs checks back 7 seconds later. Otherwise, call kya_reportBadgeOutcome when you know the result.`,
   {
     verification_token: z.string().describe(
-      "The verification_token returned by payclaw_getAgentIdentity"
+      "The verification_token returned by kya_getAgentIdentity"
     ),
     merchant: z.string().max(200).optional().describe(
       "The merchant name (e.g., 'starbucks.com'). Provide merchantUrl or merchant."
@@ -99,13 +99,13 @@ When Extended Auth is enabled, kyaLabs checks back 7 seconds later. Otherwise, c
 );
 
 server.tool(
-  "payclaw_reportBadgeOutcome",
+  "kya_reportBadgeOutcome",
   `Report how the merchant responded when you presented your Badge.
 
-Call this after payclaw_reportBadgePresented when you know whether the merchant accepted or denied you. Use when Extended Auth is disabled, or to report earlier than the 7-second check.`,
+Call this after kya_reportBadgePresented when you know whether the merchant accepted or denied you. Use when Extended Auth is disabled, or to report earlier than the 7-second check.`,
   {
     verification_token: z.string().describe(
-      "The verification_token returned by payclaw_getAgentIdentity"
+      "The verification_token returned by kya_getAgentIdentity"
     ),
     merchant: z.string().max(200).describe(
       "The merchant where you presented (e.g., 'starbucks.com')"
@@ -128,13 +128,13 @@ Call this after payclaw_reportBadgePresented when you know whether the merchant 
 );
 
 server.tool(
-  "payclaw_reportBadgeNotPresented",
+  "kya_reportBadgeNotPresented",
   `Report that you did NOT present your Badge at a merchant.
 
 Call this when you have a badge but chose not to present it (e.g., abandoned cart, merchant didn't ask).`,
   {
     verification_token: z.string().describe(
-      "The verification_token from payclaw_getAgentIdentity"
+      "The verification_token from kya_getAgentIdentity"
     ),
     merchant: z.string().max(200).describe(
       "The merchant where you did not present (e.g., 'starbucks.com')"
@@ -155,12 +155,12 @@ Call this when you have a badge but chose not to present it (e.g., abandoned car
 );
 
 server.tool(
-  "payclaw_getCard",
-  `Get a single-use virtual Visa to make a purchase on behalf of the user. You MUST call payclaw_getAgentIdentity first — you cannot pay without being identified.
+  "kya_getCard",
+  `Get a single-use virtual Visa to make a purchase on behalf of the user. You MUST call kya_getAgentIdentity first — you cannot pay without being identified.
 
 Declare the merchant, amount, and what you're buying. The user approves via MFA. kyaLabs issues a card locked to this purchase. The card self-destructs after use. Your user's real card never enters the chat.
 
-Call payclaw_reportPurchase after the transaction.`,
+Call kya_reportPurchase after the transaction.`,
   {
     merchant: z.string().max(500).describe("The merchant or store where the purchase will be made"),
     estimated_amount: z.number().positive().max(500).describe("Estimated purchase amount in USD (max $500)"),
@@ -179,10 +179,10 @@ Call payclaw_reportPurchase after the transaction.`,
 );
 
 server.tool(
-  "payclaw_reportPurchase",
+  "kya_reportPurchase",
   "Report the outcome of a purchase after using a kyaLabs virtual card. Must be called after every purchase attempt — this closes the audit trail.",
   {
-    intent_id: z.string().uuid().describe("The intent_id returned by payclaw_getCard"),
+    intent_id: z.string().uuid().describe("The intent_id returned by kya_getCard"),
     success: z.boolean().describe("Whether the purchase succeeded"),
     actual_amount: z.number().positive().max(500).optional().describe("Actual amount charged in USD"),
     merchant_name: z.string().max(500).optional().describe("Merchant name as it appeared on the receipt"),

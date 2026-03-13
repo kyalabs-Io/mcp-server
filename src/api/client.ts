@@ -7,6 +7,7 @@ import type {
   ApiAgentIdentityResponse,
 } from "../types.js";
 import { getStoredConsentKey } from "../lib/storage.js";
+import { getEnvApiUrl } from "../lib/env.js";
 
 export class BadgeApiError extends Error {
   constructor(
@@ -27,7 +28,7 @@ function log(level: "info" | "warn" | "error", msg: string): void {
 const REQUEST_TIMEOUT_MS = 30_000;
 
 function getConfig() {
-  const baseUrl = process.env.PAYCLAW_API_URL || getBaseUrl();
+  const baseUrl = getEnvApiUrl() || getBaseUrl();
   const apiKey = getStoredConsentKey();
   if (!baseUrl) throw new BadgeApiError("kyaLabs API URL is not configured.");
   if (!apiKey) throw new BadgeApiError("kyaLabs API key is not configured.");
@@ -92,7 +93,7 @@ async function request<T>(url: string, init: RequestInit): Promise<T> {
     throw new BadgeApiError(
       "Your kyaLabs session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.kyalabs.io/dashboard/keys\n" +
-      "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
+      "  2. Add to your MCP config: KYA_API_KEY=pk_live_...\n\n" +
       "Permanent keys don't expire. See: https://www.kyalabs.io/docs/mcp-setup",
       401,
     );
@@ -182,12 +183,12 @@ export async function getAgentIdentity(
 }
 
 export function isApiMode(): boolean {
-  return !!process.env.PAYCLAW_API_URL || !!getStoredConsentKey();
+  return !!getEnvApiUrl() || !!getStoredConsentKey();
 }
 
 /** Base URL for API calls. Defaults to https://www.kyalabs.io (canonical, avoids redirect). */
 export function getBaseUrl(): string {
-  const url = process.env.PAYCLAW_API_URL;
+  const url = getEnvApiUrl();
   if (url && url.trim().length > 0) {
     return url.trim().replace(/\/+$/, "");
   }
@@ -196,7 +197,7 @@ export function getBaseUrl(): string {
 
 /**
  * Call agent-identity with a Bearer token (API key or OAuth access token).
- * Used when consent key comes from device flow (OAuth token) instead of PAYCLAW_API_KEY.
+ * Used when consent key comes from device flow (OAuth token) instead of KYA_API_KEY.
  */
 export async function getAgentIdentityWithToken(
   baseUrl: string,

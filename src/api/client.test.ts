@@ -6,16 +6,16 @@ describe("401 error handling", () => {
 
   beforeEach(() => {
     vi.stubGlobal("fetch", mockFetch);
-    process.env.PAYCLAW_API_URL = "https://www.kyalabs.io";
-    process.env.PAYCLAW_API_KEY = "pk_live_test_key";
+    process.env.KYA_API_URL = "https://www.kyalabs.io";
+    process.env.KYA_API_KEY = "pk_live_test_key";
     mockFetch.mockResolvedValue({ ok: false, status: 401, headers: new Headers() });
   });
 
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
-    delete process.env.PAYCLAW_API_URL;
-    delete process.env.PAYCLAW_API_KEY;
+    delete process.env.KYA_API_URL;
+    delete process.env.KYA_API_KEY;
   });
 
   it("throws BadgeApiError with directed action on 401", async () => {
@@ -31,6 +31,6 @@ describe("401 error handling", () => {
     expect(err.statusCode).toBe(401);
     expect(err.message).toMatch(/kyaLabs session has expired/i);
     expect(err.message).toMatch(/kyalabs\.io\/dashboard\/keys/i);
-    expect(err.message).toMatch(/PAYCLAW_API_KEY/i);
+    expect(err.message).toMatch(/KYA_API_KEY/i);
   });
 });

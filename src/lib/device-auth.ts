@@ -1,11 +1,12 @@
 // Canonical: badge-server | Synced: 0.7.3 | Do not edit in mcp-server
 import { storeConsentKey } from "./storage.js";
+import { getEnvApiUrl } from "./env.js";
 
 const DEFAULT_API_URL = "https://www.kyalabs.io";
 const FETCH_TIMEOUT_MS = 10_000;
 
 function getBaseUrl(): string {
-  const url = process.env.PAYCLAW_API_URL;
+  const url = getEnvApiUrl();
   if (url && url.trim().length > 0) {
     const trimmed = url.trim().replace(/\/+$/, "");
     try {

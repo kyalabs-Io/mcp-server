@@ -147,7 +147,7 @@ describe("sampling", () => {
           () => new Promise(() => {}) // never resolves
         ),
       } as unknown as import("@modelcontextprotocol/sdk/server/index.js").Server;
-      process.env.PAYCLAW_EXTENDED_AUTH = "true";
+      process.env.KYA_EXTENDED_AUTH = "true";
       initSampling(mockServer);
       onTripStarted("tok8", "m");
       onIdentityPresented("tok8", "m");
@@ -156,7 +156,7 @@ describe("sampling", () => {
       await vi.advanceTimersByTimeAsync(16000); // past 15s timeout
 
       expect(getActiveTrip("tok8")).toBeUndefined();
-      delete process.env.PAYCLAW_EXTENDED_AUTH;
+      delete process.env.KYA_EXTENDED_AUTH;
     });
 
     it("reportOutcome with no key -> no fetch, no throw, trip evicted", async () => {
@@ -164,7 +164,7 @@ describe("sampling", () => {
       mockFetch.mockClear();
       vi.mocked(storage.getStoredConsentKey).mockReturnValue(null);
 
-      process.env.PAYCLAW_EXTENDED_AUTH = "true";
+      process.env.KYA_EXTENDED_AUTH = "true";
       const mockServer = {
         createMessage: vi.fn().mockResolvedValue({
           content: { type: "text", text: "no" },
@@ -182,7 +182,7 @@ describe("sampling", () => {
         String(c[0]).includes("/api/badge/report")
       );
       expect(reportCalls).toHaveLength(0);
-      delete process.env.PAYCLAW_EXTENDED_AUTH;
+      delete process.env.KYA_EXTENDED_AUTH;
     });
   });
 

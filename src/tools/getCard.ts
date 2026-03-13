@@ -102,7 +102,7 @@ export function formatCardResponse(r: CardResult, merchant?: string, amount?: nu
     lines.push(
       ``,
       `  ⚠️  Single-use. Card self-destructs after this purchase.`,
-      `  Call payclaw_reportPurchase when done.`,
+      `  Call kya_reportPurchase when done.`,
     );
 
     if (r.badge_warning) {
@@ -168,10 +168,10 @@ async function getCardViaApi(input: GetCardInput): Promise<CardResult> {
     },
     identity: card.identity ?? undefined,
     badge_warning: card.badge_warning ??
-      (card.identity ? undefined : "Consider calling payclaw_getAgentIdentity before shopping. Merchants are increasingly blocking unidentified agents."),
+      (card.identity ? undefined : "Consider calling kya_getAgentIdentity before shopping. Merchants are increasingly blocking unidentified agents."),
     remaining_balance: (balance.available_cents - estimatedCents) / 100,
     instructions:
-      "Use this card to complete the purchase. After the transaction, call payclaw_reportPurchase with the intent_id and actual amount charged.",
+      "Use this card to complete the purchase. After the transaction, call kya_reportPurchase with the intent_id and actual amount charged.",
   };
 }
 
@@ -202,10 +202,10 @@ function getCardViaMock(input: GetCardInput): CardResult {
       last_four: MOCK_CARD.number?.slice(-4),
     },
     badge_warning:
-      "Consider calling payclaw_getAgentIdentity before shopping. Merchants are increasingly blocking unidentified agents.",
+      "Consider calling kya_getAgentIdentity before shopping. Merchants are increasingly blocking unidentified agents.",
     remaining_balance: balance,
     instructions:
-      "Use this card to complete the purchase. After the transaction, call payclaw_reportPurchase with the intent_id and actual amount charged.",
+      "Use this card to complete the purchase. After the transaction, call kya_reportPurchase with the intent_id and actual amount charged.",
   };
 }
 
@@ -217,7 +217,7 @@ export async function getCard(input: GetCardInput): Promise<CardResult> {
     return {
       product_name: "kyaLabs",
       status: "error",
-      message: "Not authenticated. Run payclaw_getAgentIdentity first to activate your agent, or set PAYCLAW_API_KEY in your MCP config.",
+      message: "Not authenticated. Run kya_getAgentIdentity first to activate your agent, or set KYA_API_KEY in your MCP config.",
     };
   }
 

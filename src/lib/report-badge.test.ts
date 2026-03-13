@@ -20,11 +20,11 @@ describe("reportBadgePresented", () => {
   afterEach(() => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
-    delete process.env.PAYCLAW_API_KEY;
-    delete process.env.PAYCLAW_API_URL;
+    delete process.env.KYA_API_KEY;
+    delete process.env.KYA_API_URL;
   });
 
-  it("POSTs when PAYCLAW_API_KEY set", async () => {
+  it("POSTs when KYA_API_KEY set", async () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_test_xxx");
 
     await reportBadgePresented("tok123", "merchant.com");
@@ -48,7 +48,7 @@ describe("reportBadgePresented", () => {
 
   it("POSTs when only stored consent key exists (OAuth)", async () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("oauth_access_token_xyz");
-    process.env.PAYCLAW_API_KEY = "";
+    process.env.KYA_API_KEY = "";
 
     await reportBadgePresented("tok456", "other.com");
 
@@ -70,9 +70,9 @@ describe("reportBadgePresented", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("uses PAYCLAW_API_URL when set", async () => {
+  it("uses KYA_API_URL when set", async () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_test_xxx");
-    process.env.PAYCLAW_API_URL = "https://custom-payclaw.example";
+    process.env.KYA_API_URL = "https://custom-payclaw.example";
 
     await reportBadgePresented("tok", "m");
 
@@ -82,9 +82,9 @@ describe("reportBadgePresented", () => {
     );
   });
 
-  it("uses kyalabs.io when PAYCLAW_API_URL unset", async () => {
+  it("uses kyalabs.io when KYA_API_URL unset", async () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_test_xxx");
-    delete process.env.PAYCLAW_API_URL;
+    delete process.env.KYA_API_URL;
 
     await reportBadgePresented("tok", "m");
 

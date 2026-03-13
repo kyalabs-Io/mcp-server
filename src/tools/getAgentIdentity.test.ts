@@ -26,20 +26,20 @@ describe("getAgentIdentity — 401 handling", () => {
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pc_v1_expired_token");
     vi.mocked(api.isApiMode).mockReturnValue(true);
     vi.mocked(api.getBaseUrl).mockReturnValue("https://www.kyalabs.io");
-    // No PAYCLAW_API_KEY → uses OAuth token path (callWithOAuthToken)
-    delete process.env.PAYCLAW_API_KEY;
+    // No KYA_API_KEY → uses OAuth token path (callWithOAuthToken)
+    delete process.env.KYA_API_KEY;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    delete process.env.PAYCLAW_API_KEY;
+    delete process.env.KYA_API_KEY;
   });
 
   it("surfaces session_expired when OAuth token gets 401", async () => {
     const authError = new api.BadgeApiError(
       "kyaLabs session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.kyalabs.io/dashboard/keys\n" +
-      "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
+      "  2. Add to your MCP config: KYA_API_KEY=pk_live_...\n\n" +
       "Permanent keys don't expire. See: https://www.kyalabs.io/docs/mcp-setup",
       401
     );
@@ -69,14 +69,14 @@ describe("getAgentIdentity — 401 handling", () => {
   });
 
   it("surfaces session_expired when API key gets 401", async () => {
-    // Simulate PAYCLAW_API_KEY path (callWithKey) — set the env var
-    process.env.PAYCLAW_API_KEY = "pk_live_invalid_key";
+    // Simulate KYA_API_KEY path (callWithKey) — set the env var
+    process.env.KYA_API_KEY = "pk_live_invalid_key";
     vi.mocked(storage.getStoredConsentKey).mockReturnValue("pk_live_invalid_key");
 
     const authError = new api.BadgeApiError(
       "kyaLabs session has expired. To continue, add a permanent API key to your MCP config:\n\n" +
       "  1. Get a key: https://www.kyalabs.io/dashboard/keys\n" +
-      "  2. Add to your MCP config: PAYCLAW_API_KEY=pk_live_...\n\n" +
+      "  2. Add to your MCP config: KYA_API_KEY=pk_live_...\n\n" +
       "Permanent keys don't expire. See: https://www.kyalabs.io/docs/mcp-setup",
       401
     );

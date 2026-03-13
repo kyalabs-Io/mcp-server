@@ -1,5 +1,5 @@
 /**
- * Integration tests for payclaw_reportBadgePresented tool flow (BUG-01.1 spec 1.5).
+ * Integration tests for kya_reportBadgePresented tool flow (BUG-01.1 spec 1.5).
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
@@ -11,7 +11,7 @@ vi.mock("./report-badge.js");
 
 import { handleReportBadgePresented } from "./report-badge-presented-handler.js";
 
-describe("handleReportBadgePresented (payclaw_reportBadgePresented tool)", () => {
+describe("handleReportBadgePresented (kya_reportBadgePresented tool)", () => {
   beforeEach(() => {
     vi.mocked(sampling.onIdentityPresented).mockClear();
     vi.mocked(reportBadge.reportBadgePresented).mockResolvedValue(undefined);
